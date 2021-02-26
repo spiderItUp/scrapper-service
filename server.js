@@ -6,14 +6,17 @@ const logger = require('morgan')
 const helmet = require('helmet')
 
 const routes = require('./server/routes')
-const { TEST_PORT, NODE_ENV } = require('./config/env')
-let { PORT } = require('./config/env')
+const { TEST_PORT, NODE_ENV, DB_URL } = require('./config/env')
+let { PORT, DB_NAME } = require('./config/env')
 
-if (NODE_ENV === 'test') PORT = TEST_PORT
+if (NODE_ENV === 'test') {
+  PORT = TEST_PORT
+  DB_NAME = 'test'
+}
 
 if (mongoose.connection.readyState === 0) {
-  mongoose.connect(dbUrl, {
-    dbName,
+  mongoose.connect(DB_URL, {
+    dbName: DB_NAME,
     useNewUrlParser: true,
     keepAlive: true,
     keepAliveInitialDelay: 300000,
