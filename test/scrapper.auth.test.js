@@ -7,6 +7,7 @@ describe('auth tests', () => {
   let server
 
   beforeEach(() => {
+    delete require.cache[require.resolve('../server')]
     // eslint-disable-next-line global-require
     server = require('../server')
   })

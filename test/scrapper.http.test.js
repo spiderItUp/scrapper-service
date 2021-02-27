@@ -4,23 +4,24 @@ const request = require('supertest')
 const { createToken } = require('./helpers')
 
 describe('http tests for scrapper service', () => {
-  // eslint-disable-next-line global-require
-  const server = require('../server')
+  let server
   beforeEach(() => {
-
+    delete require.cache[require.resolve('../server')]
+    // eslint-disable-next-line global-require
+    server = require('../server')
   })
   afterEach(async () => {
-    // await helpers.deleteAll()
+    await server.close()
   })
 
-  it('on POST /scrape', async () => {
+  it('aee on POST /scrape', async () => {
     console.log('h')
     // await Promise.all([
     //   helpers.createAuth(), helpers.createAuth({ userId: 'root', password: 'root' }),
     // ])
     return request(server)
       .post('/scrape')
-      .send({ url: 'http://www.elpati.es', deep: 1 })
+      .send({ url: 'http://localhost:3005', deep: 12 })
       .set('Authorization', `bearer ${createToken()}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)

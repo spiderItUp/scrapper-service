@@ -4,17 +4,27 @@ const request = require('supertest')
 const { createToken } = require('./helpers')
 
 describe('validation tests for scrapper service', () => {
-  // eslint-disable-next-line global-require
-  const server = require('../server')
+  let server
   beforeEach(() => {
-
+    delete require.cache[require.resolve('../server')]
+    // eslint-disable-next-line global-require
+    server = require('../server')
   })
   afterEach(async () => {
+    await server.close()
   })
 
   it('validates url on POST /scrape', async () => request(server)
     .post('/scrape')
     .send({ url: 'hello', deep: 3 })
+    .set('Authorization', `bearer ${createToken()}`)
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/)
+    .expect(422))
+
+  it('validates url empty on POST /scrape', async () => request(server)
+    .post('/scrape')
+    .send({ url: '', deep: 3 })
     .set('Authorization', `bearer ${createToken()}`)
     .set('Accept', 'application/json')
     .expect('Content-Type', /json/)
