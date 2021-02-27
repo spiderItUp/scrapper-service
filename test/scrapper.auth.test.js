@@ -28,4 +28,16 @@ describe('auth tests', () => {
     .set('Accept', 'application/json')
     .expect('Content-Type', 'text/html; charset=utf-8')
     .expect(401))
+
+  it('fails when token is empty on GET /', async () => request(server)
+    .get('/')
+    .set('Accept', 'application/json')
+    .expect('Content-Type', 'text/html; charset=utf-8')
+    .expect(401))
+
+  it('fails when token is empty on GET /baseUrl', async () => request(server)
+    .get('/baseUrl?url=http://www.google.com')
+    .set('Accept', 'application/json')
+    .expect('Content-Type', 'text/html; charset=utf-8')
+    .expect(401))
 })

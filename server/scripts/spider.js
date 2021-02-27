@@ -1,7 +1,8 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
-const ScrapperApi = require('./server/api/scrapper')
+const ScrapperApi = require('../api/scrapper')
 
 let urlArr = []
 let urlPopArr = []
@@ -9,11 +10,17 @@ let urlPopArr = []
 const regexp1 = /href=\"(.+?)\"/gm
 const regexp2 = /href=\"(.+?)\"/
 
-const baseUrl = 'http://localhost:3005'
-const initStep = 1
-const maxStep = 2
+const filter = ({ maxStep, baseUrl }) => {
+  if (urlPopArr[0].step > maxStep) return false
+  if (!urlPopArr[0].url.includes(baseUrl)) return false
+  return true
+}
 
-const getCleanUrl = async ({ url, step }) => {
+/**
+ *
+ * @param {*} param0
+ */
+const getCleanUrl = async ({ url, step, baseUrl }) => {
   const rp = await ScrapperApi.getPageTxt({ url })
   let txtPage = await rp.text()
 
@@ -31,21 +38,33 @@ const getCleanUrl = async ({ url, step }) => {
 
   urlArr = [...urlArr, ...matchingUrls]
   urlPopArr = [...urlPopArr, ...matchingUrls]
-};
+}
 
-(async () => {
-  await getCleanUrl({ url: baseUrl, step: initStep })
+/**
+ *
+ * @param {*} param0
+ */
+const spider = async ({ baseUrl, step }) => {
+  const initStep = 1
+  const maxStep = step
+  await getCleanUrl({ url: baseUrl, step: initStep, baseUrl })
 
   const fn = async () => {
     while (urlPopArr.length > 0) {
-      if (urlPopArr[0].step <= maxStep) {
-        await getCleanUrl({ url: urlPopArr[0].url, step: urlPopArr[0].step })
+      if (filter({ baseUrl, maxStep })) {
+        await getCleanUrl({ url: urlPopArr[0].url, step: urlPopArr[0].step, baseUrl })
       }
       urlPopArr.shift()
     }
     return urlArr
   }
 
-  const a = await fn()
-  console.log(a)
-})()
+  let rp = await fn()
+  rp = rp.reduce((acc, current) => {
+    acc.push(current.url)
+    return acc
+  }, [])
+  return Array.from(new Set(rp))
+}
+
+module.exports = spider
