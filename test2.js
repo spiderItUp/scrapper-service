@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
 const ScrapperApi = require('./server/api/scrapper')
 
@@ -8,8 +10,10 @@ const regexp1 = /href=\"(.+?)\"/gm
 const regexp2 = /href=\"(.+?)\"/
 
 const baseUrl = 'http://localhost:3005'
+const initStep = 1
+const maxStep = 2
 
-const getCleanUrl = async ({ url }) => {
+const getCleanUrl = async ({ url, step }) => {
   const rp = await ScrapperApi.getPageTxt({ url })
   let txtPage = await rp.text()
 
@@ -19,8 +23,9 @@ const getCleanUrl = async ({ url }) => {
   let matchingUrls = txtPage ? Array.from(new Set(txtPage)) : []
 
   matchingUrls = matchingUrls.reduce((acc, current) => {
-    if (current.match(/^\//)) acc.push(baseUrl + current)
-    else acc.push(current)
+    if (current.match(/^\//)) current = baseUrl + current
+    acc.push({ url: current, step: step + 1 })
+
     return acc
   }, [])
 
@@ -29,11 +34,13 @@ const getCleanUrl = async ({ url }) => {
 };
 
 (async () => {
-  await getCleanUrl({ url: baseUrl })
+  await getCleanUrl({ url: baseUrl, step: initStep })
 
   const fn = async () => {
     while (urlPopArr.length > 0) {
-      await getCleanUrl({ url: urlPopArr[0] })
+      if (urlPopArr[0].step <= maxStep) {
+        await getCleanUrl({ url: urlPopArr[0].url, step: urlPopArr[0].step })
+      }
       urlPopArr.shift()
     }
     return urlArr
