@@ -51,7 +51,7 @@ const ScrapperFactory = () => {
    */
   const all = async (req, res) => {
     try {
-      const { page, limit = 10 } = req.query
+      const { page, limit = 10000 } = req.query
 
       const rp = await Url.paginate({}, { page, limit, lean: true })
       const {

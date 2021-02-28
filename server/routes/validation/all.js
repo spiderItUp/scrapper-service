@@ -7,7 +7,7 @@ module.exports = [
     .toInt(),
   query('limit')
     .optional()
-    .isInt({ min: 0, max: 99 })
+    .isInt({ min: 0, max: 10000 })
     .toInt(),
 
 ]
