@@ -47,6 +47,8 @@ const getCleanUrl = async ({ url, step, baseUrl }) => {
  * @param {*} param0
  */
 const spider = async ({ baseUrl, step }) => {
+  urlArr = []
+  urlPopArr = []
   const initStep = 1
   const maxStep = step
   await getCleanUrl({ url: baseUrl, step: initStep, baseUrl })
