@@ -1,6 +1,8 @@
 const Url = require('../models/scrapper')
 const errorHandler = require('../utils/errorHandler')
 const spider = require('../scripts/spider')
+const ScrapperApi = require('../api/scrapper')
+
 /**
  * Scrapper factory handler
  */
@@ -15,13 +17,29 @@ const ScrapperFactory = () => {
   const scrape = async (req, res) => {
     try {
       const { url, deep } = req.body
-      const rp = await spider({ baseUrl: url, step: deep })
+      const urls = await spider({ baseUrl: url, step: deep })
 
       // save into db
-      await Url.create({ baseUrl: url, urls: rp })
+      const rp = await Url.findOne({ baseUrl: url }).lean()
+      if (rp) {
+        rp.urls = Array.from(new Set([...rp.urls, ...urls]))
+        await Url.updateOne({ baseUrl: url }, rp)
+      } else await Url.create({ baseUrl: url, urls })
 
-      return res.status(200).json({ success: true, data: rp })
+      // get urls statuses
+      const urlArr = urls.reduce((acc, current) => {
+        acc.push(ScrapperApi.getStatusOfAny({ url: current }))
+        return acc
+      }, [])
+      const urlArrRp = await Promise.all(urlArr)
+      const urlArrStatus = urlArrRp.reduce((acc, current, i) => {
+        acc.push({ url: urls[i], status: urlArrRp[i].status })
+        return acc
+      }, [])
+
+      return res.status(200).json({ success: true, data: urlArrStatus })
     } catch (e) {
+      console.log(e)
       return errorHandler(res)
     }
   }

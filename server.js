@@ -1,3 +1,6 @@
+// eslint-disable-next-line global-require
+if (process.env.NODE_ENV !== 'production') require('dotenv').config()
+
 const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
@@ -6,8 +9,9 @@ const logger = require('morgan')
 const helmet = require('helmet')
 
 const routes = require('./server/routes')
-const { TEST_PORT, NODE_ENV, DB_URL } = require('./config/env')
-let { PORT, DB_NAME } = require('./config/env')
+
+const { TEST_PORT, NODE_ENV, DB_URL } = process.env
+let { PORT, DB_NAME } = process.env
 
 if (NODE_ENV === 'test') {
   PORT = TEST_PORT

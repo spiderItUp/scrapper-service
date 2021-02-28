@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test'
 
 const request = require('supertest')
 const { createToken } = require('./helpers')
+const helpers = require('./helpers')
 
 describe('http tests for scrapper service', () => {
   let server
@@ -11,48 +12,42 @@ describe('http tests for scrapper service', () => {
     server = require('../server')
   })
   afterEach(async () => {
+    helpers.removeBaseUrlAll()
     await server.close()
   })
 
-  it('aee on POST /scrape', async () => {
-    console.log('h')
-    // await Promise.all([
-    //   helpers.createAuth(), helpers.createAuth({ userId: 'root', password: 'root' }),
-    // ])
+  it('retrieve all baseUrls on GET /', async () => {
+    await helpers.createBaseUrl()
     return request(server)
-      .post('/scrape')
+      .get('/')
       // .send({ url: 'http://localhost:3005', deep: 5 })
-      .send({ url: 'http://localhost:3005', deep: 3 })
+      .query({ limit: 10 })
       .set('Authorization', `bearer ${createToken()}`)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
-      .expect((res) => console.log(res.body))
-    //   .expect((res) => { if (!res.body.success) { throw new Error('login status is false') } })
-    //   .expect((res) => { if (!res.body.token) { throw new Error('token not provided') } })
+      .expect((res) => { if (!res.body.data.length === 2) { throw new Error('no urls stored') } })
       .expect(200)
   })
 
-  //   it('login fails when userId is incorrect on POST /login', async () => {
-  //     await Promise.all([
-  //       helpers.createAuth(), helpers.createAuth({ userId: 'userId|507f191e810c19729d554rea', password: '3343' }),
-  //     ])
-  //     return request(server)
-  //       .post('/login')
-  //       .send({ userId: 'userId|507f191e810c19729d500000', password: '3343' })
-  //       .set('Accept', 'application/json')
-  //       .expect('Content-Type', /json/)
-  //       .expect(400)
-  //   })
+  it('retrieve the urls by baseUrl on GET /baseUrl', async () => {
+    await helpers.createBaseUrl()
+    return request(server)
+      .get('/baseUrl')
+      .query({ url: 'https://www.youtube.com' })
+      .set('Authorization', `bearer ${createToken()}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect((res) => { if (!res.body.data.urls.length === 2) { throw new Error('no urls stored') } })
+      .expect(200)
+  })
 
-//   it('login fails when password is incorrect on POST /login', async () => {
-//     await Promise.all([
-//       helpers.createAuth(), helpers.createAuth({ userId: 'userId|507f191e810c19729d554rea', password: '3343' }),
-//     ])
-//     return request(server)
-//       .post('/login')
-//       .send({ userId: 'userId|507f191e810c19729d554rea', password: '3398' })
-//       .set('Accept', 'application/json')
-//       .expect('Content-Type', /json/)
-//       .expect(400)
-//   })
+  it('scrapes urls on POST /scrape', async () => request(server)
+    .post('/scrape')
+    // .send({ url: 'http://localhost:3005', deep: 5 })
+    .send({ url: 'http://www.elpati.es', deep: 1 })
+    .set('Authorization', `bearer ${createToken()}`)
+    .set('Accept', 'application/json')
+    .expect('Content-Type', /json/)
+    .expect((res) => console.log(res.body))
+    .expect(200))
 })

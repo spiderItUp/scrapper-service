@@ -13,6 +13,7 @@ const regexp2 = /href=\"(.+?)\"/
 const filter = ({ maxStep, baseUrl }) => {
   if (urlPopArr[0].step > maxStep) return false
   if (!urlPopArr[0].url.includes(baseUrl)) return false
+  if (/^(#|tel:|mailto:)/.test(urlPopArr[0].url)) return false
   return true
 }
 
@@ -30,6 +31,7 @@ const getCleanUrl = async ({ url, step, baseUrl }) => {
   let matchingUrls = txtPage ? Array.from(new Set(txtPage)) : []
 
   matchingUrls = matchingUrls.reduce((acc, current) => {
+    if (/^(#|\/#|tel:|mailto:)/.test(current)) return acc
     if (current.match(/^\//)) current = baseUrl + current
     acc.push({ url: current, step: step + 1 })
 

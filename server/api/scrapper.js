@@ -9,8 +9,15 @@ const ScrapperApi = () => {
     },
   })
 
+  const getStatusOfAny = async ({ url }) => fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: '*/*',
+    },
+  })
+
   return {
-    getPageTxt,
+    getPageTxt, getStatusOfAny,
 
   }
 }
